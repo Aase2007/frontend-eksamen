@@ -3,6 +3,7 @@ let DATASET = 'production'
 let QUERY = encodeURIComponent(`*[_type == 'products']{productname, artist, category->{category}, year, price, description, image}`)
 let URL = `https://${PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${DATASET}?query=${QUERY}`
 let products
+let cartList = []
 
 function getImageUrl(index){ //lager url-en til bilde
     let imageList = products[index].image.asset._ref.split('-') //deler bildereferansen inn i deler slik at den er lesbar
@@ -49,14 +50,14 @@ function modalFunc(index){
     document.body.innerHTML += `    
         <div id="modalbox" class="fixed flex w-screen h-screen align-middle justify-center">
             <div id="modal" class="flex flex-col bg-white md:border-2 md:rounded-4xl w-max-screen m-min-120 md:ml-30 md:mr-30 h-screen md:h-fit mt-20 p-8">
-                <h1 class="text-7xl mb-8">Akustisk gitar</h1>
+                <h1 class="text-7xl mb-8">${products[index].productname}</h1>
                 <div class="flex flex-row justify-between">
                     <img class=" border-[1.5px] rounded-2xl w-2/5" src="${getImageUrl(index)}">
                     <div class="flex flex-col w-5/10">
-                        <h2 class="text-4xl">pris</h2>
-                        <p>kategori</p>
-                        <p>beskrivelse</p>
-                        <button onclick="handlekurvFunc()" class="border-1 rounded-4xl max-w-80">legg til i handlekurv</button>
+                        <h2 class="text-4xl">${products[index].price} kr</h2>
+                        <p>${products[index].category.category}</p>
+                        <p>${products[index].description}</p>
+                        <button onclick="handlekurvFunc(${index})" class="border-1 rounded-4xl max-w-80">legg til i handlekurv</button>
                     </div>
                 </div>
             </div>
@@ -65,18 +66,36 @@ function modalFunc(index){
     modalOpen = true
 }
 window.onclick = function(event) {
-    console.log('hei')
+    //console.log('hei')
     let modal = document.getElementById("modal");
     let modalbox = document.getElementById("modalbox");
     if (modalOpen==true){
-        console.log('hei2')
+        //console.log('hei2')
         if (event.target != modal) {
-            console.log('hei3')
+            //console.log('hei3')
             //modalbox.style.display = "none";
         }
     }
 }
 
-function handlekurvFunc(){ //funksjon som kjører når brukeren trykker på legg til i handlekurven
-
+function handlekurvFunc(index){ //funksjon som kjører når brukeren trykker på legg til i handlekurven
+    const cartItem = { //lager et objekt av produktet som brukeren har lagt i handlekurven
+        name: `${products[index].productname}`,
+        artist: `${products[index].artist}`,
+        category: `${products[index].category.category}`,
+        price: `${products[index].price}`,
+        year: `${products[index].year}`,
+        image: `${getImageUrl(index)}`
+    }
+    if (localStorage.getItem("cart") != null){
+        let localCart = localStorage.getItem("cart")
+        localCart = JSON.parse(localCart)
+        console.log(localCart, 'dete er localcart')
+        cartList.push(...localCart);
+        //console.log(cartList)
+    }
+    cartList.push(cartItem)
+    localStorage.setItem("cart", JSON.stringify(cartList))
+    console.log(localStorage.getItem("cart"))
 }
+
