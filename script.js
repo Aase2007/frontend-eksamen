@@ -32,7 +32,7 @@ window.onclick = function(event) {
     let modalbox = document.getElementById("modalbox");
     if (modalOpen==true){
         console.log('hei2')
-        if (event.target == modal) {
+        if (event.target != modal) {
             console.log('hei3')
             //modalbox.style.display = "none";
         }
