@@ -11,34 +11,64 @@ function getImageUrl(index){ //lager url-en til bilde
     return imageURL
 }
 
-async function getProducts(){ // henter produktene fra databasen
-    let response =  await fetch(URL)
+async function getProducts(url){ // henter produktene fra databasen
+    let response =  await fetch(url)
     let data =  await response.json()
     return data.result
 }
-getProducts().then((data) => { // putter produktene inn i frontenden
+getProducts(URL).then((data) => { // putter produktene inn i frontenden
     products = data
-    for (let i = 0; i < products.length; i++){
-        console.log(products[i])
+    insertItems(products)
+})
+
+function insertItems(itemList) {
+    document.getElementById('productbox').innerHTML = ""
+    for (let i = 0; i < itemList.length; i++){
+        console.log(itemList[i])
         document.getElementById('productbox').innerHTML += `        
             <div class="lg:w-2/7 w-9/20 border-[1.5px] rounded-4xl p-8 bg-purple-100 m-2" onclick="modalFunc(${i})">
                 <img class=" border-[1.5px] rounded-2xl bg-white h-80" src="${getImageUrl(i)}">
-                <h2 class="max-h-16 font-bold rounded-full border-[1.5px] w-fit p-4 bg-white dynamic-height">${data[i].productname}</h2>
+                <h2 class="max-h-16 font-bold rounded-full border-[1.5px] w-fit p-4 bg-white dynamic-height">${itemList[i].productname}</h2>
                 <div class="flex flex-row justify-between items-end text-xl p-2 -mt-3">
                     <div>
-                        <p>${data[i].artist}</p>
-                        <p>${data[i].category.category}</p>
+                        <p>${itemList[i].artist}</p>
+                        <p>${itemList[i].category.category}</p>
                     </div>
-                    <p>${data[i].price} kr</p>
+                    <p>${itemList[i].price} kr</p>
                 </div>
             </div>
         `
     }
-})
+}
 
 
 function search(){
     //søkefunksjon her!!!
+    let userInput = document.getElementById('search').value
+    console.log(userInput)
+    let searchquery = encodeURIComponent(`*[productname match "${userInput}*"]`)
+    let URL = `https://${PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${DATASET}?query=${searchquery}`
+    getProducts(URL).then((data) => {
+        document.getElementById('productbox').innerHTML = ""
+        for (let i = 0; i < data.length; i++){
+            console.log(data[i])
+            let imageList = data[i].image.asset._ref.split('-') //deler bildereferansen inn i deler slik at den er lesbar
+            let imageURL = `https://cdn.sanity.io/images/${PROJECT_ID}/${DATASET}/${imageList[1]}-${imageList[2]}.${imageList[3]}` //lager URL for bilde
+            document.getElementById('productbox').innerHTML += `        
+                <div class="lg:w-2/7 w-9/20 border-[1.5px] rounded-4xl p-8 bg-purple-100 m-2" onclick="modalFunc(${i})">
+                    <img class=" border-[1.5px] rounded-2xl bg-white h-80" src="${imageURL}">
+                    <h2 class="max-h-16 font-bold rounded-full border-[1.5px] w-fit p-4 bg-white dynamic-height">${data[i].productname}</h2>
+                    <div class="flex flex-row justify-between items-end text-xl p-2 -mt-3">
+                        <div>
+                            <p>${data[i].artist}</p>
+                            <p>${data[i].category.category}</p>
+                        </div>
+                        <p>${data[i].price} kr</p>
+                    </div>
+                </div>
+            `
+        }
+    })
 }
 
 let modalOpen = false
@@ -90,12 +120,12 @@ function handlekurvFunc(index){ //funksjon som kjører når brukeren trykker på
     if (localStorage.getItem("cart") != null){
         let localCart = localStorage.getItem("cart")
         localCart = JSON.parse(localCart)
-        console.log(localCart, 'dete er localcart')
+        //console.log(localCart, 'dete er localcart')
         cartList.push(...localCart);
         //console.log(cartList)
     }
     cartList.push(cartItem)
     localStorage.setItem("cart", JSON.stringify(cartList))
-    console.log(localStorage.getItem("cart"))
+    //console.log(localStorage.getItem("cart"))
 }
 
